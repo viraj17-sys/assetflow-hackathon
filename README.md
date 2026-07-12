@@ -39,7 +39,7 @@ cd assetflow
 php -S localhost:8000
 ```
 
-Then open **http://localhost:8000** in your browser.
+Then open **http://localhost:8000** in your browser. it is very useful for salary and employee management 
 
 ## How data works
 
