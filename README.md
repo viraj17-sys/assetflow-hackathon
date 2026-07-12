@@ -1,67 +1,96 @@
-# AssetFlow Dashboard
+[![PHPMailer logo](images/phpmailer.png)](https://github.com/PHPMailer/PHPMailer)
+# PHPMailer code examples
 
-A simple, professional asset-management dashboard built with **PHP + HTML + CSS** (no framework, no database setup required for the demo).
+This folder contains a collection of examples of using [PHPMailer](https://github.com/PHPMailer/PHPMailer).
 
-## What's included
+## About testing email sending
 
-- **Dashboard** (`index.php`) — today's overview stats, overdue alert banner, quick actions, recent activity, and a "Reset demo data" control
-- **Assets** (`assets.php`) — searchable asset registry, with a link into direct allocation or transfer depending on status
-- **Allocation & Transfer** (`transfer.php`) — the double-allocation block: selecting an already-allocated asset blocks direct re-assignment and routes you to a transfer request form instead; available assets can be allocated directly. Pending transfers can now be **approved or rejected** — approving actually moves the asset to the new holder
-- **Resource Booking** (`booking.php`) — book rooms/equipment, see today's bookings, blocked from double-booking the exact same room/time slot
-- **Asset Audit** (`audit.php`) — audit cycle info (department, date range, auditors), a per-asset verification checklist (Verified / Missing / Damaged), an auto-calculated discrepancy banner, and a Close audit cycle action that logs the result and lets you start a fresh cycle
-- **Reports & Analytics** (`reports.php`) — utilization-by-department bar chart, maintenance-frequency line chart, most-used/idle asset lists, assets due for maintenance or nearing retirement, and a working **Export report** button that downloads a CSV
-- **Notifications** (`notifications.php`) — activity log with filter tabs (All / Alerts / Approvals / Bookings)
-- **Organization Setup** (`org.php`) — admin screen with Departments / Categories / Employee tabs, a context-aware "+ Add" form for each, and status badges. Adding or deactivating a department feeds the department picklist on Allocation & Transfer; categories feed the category picklist when registering a new asset on the Dashboard
-- **User Roles & Permissions** — a demo Admin/Staff switcher in the topbar. Admin-only actions (registering assets, direct allocation, approving/rejecting transfers, closing/starting audit cycles, Organization Setup, and resetting demo data) are hidden from Staff in the UI *and* rejected server-side if posted directly. Staff can still do day-to-day work: submit transfer requests, book resources, and mark audit checklist items.
-- Placeholder pages for Maintenance (`page.php`)
+When working on email sending code you'll find yourself worrying about what might happen if all these test emails got sent to your mailing list. The solution is to use a fake mail server, one that acts just like the real thing, but just doesn't actually send anything out. Some offer web interfaces, feedback, logging, the ability to return specific error codes, all things that are useful for testing error handling, authentication etc. Here's a selection of mail testing tools you might like to try:
 
-### What's new in this version
-- **Asset lifecycle timeline** (`asset.php?id=…`) — a visual, chronological history per asset (Registered → Allocated → Transferred → Maintenance → Retired), reachable via a "Timeline" link on the Assets table. Admins can send an asset to Maintenance, resolve it back to Available, or retire it — every action is logged to the timeline and to Recent Activity.
-- **Utilization / idle-time insights** — idle days are now computed for real from each asset's last activity date instead of a static demo string. The Assets table flags anything idle 30+ days with an "idle Nd" pill, the Dashboard surfaces the worst offender in a callout banner ("Epson EB-Projector has been unbooked for 45 days"), and Reports lists all idle assets ranked worst-first, each linking to its timeline.
-- **Booking calendar view** — Resource Booking is now a real week grid (Mon–Sun, 8am–6pm) instead of just a form + list. Bookings render as blocks positioned by time; click any empty slot to prefill a booking form at that day/time. Prev/next week navigation included.
-- **Smart conflict detection** — booking overlap checking is now interval-aware (catches partial overlaps, not just exact-match times), and Allocation & Transfer warns admins before they compound a problem: submitting a transfer for an already-overdue asset shows an explicit "days overdue" warning, and allocating/transferring an asset to someone who already holds a different overdue asset flags that too.
-- **Sky blue & white theme.** Reworked the visual design: a light white/sky-tinted workspace, a sky-blue gradient sidebar, and matching blue accents on primary buttons, active nav/tabs, and focus states. The Reports & Analytics charts carry the sky-blue panel through with warm amber bars and a white "cloud" line for contrast. Real interactivity throughout — hover lifts on buttons and cards, table row highlighting, smooth focus rings, and an animated slide for the Register Asset / Add drawers.
-- **User roles & permissions.** A topbar "Viewing as" switcher toggles between Admin and Staff for the current session (there's no real login system, so this simulates one). Admin-only screens and actions are hidden from Staff and also blocked server-side if requested directly — see the feature list above for exactly what's gated.
-- **Transfers now actually resolve.** Previously a transfer request just sat as "Pending" forever with no way to close it out. There's now Approve/Reject on each pending row, and approving reassigns the asset's holder and status.
-- **Direct allocation for available assets.** Assets with no holder can now be assigned straight from Assets → Allocate or Transfer & Allocation, instead of only showing a "go check Assets page" message.
-- **Duplicate asset ID guard.** Registering an asset ID that already exists is now rejected with a clear error instead of silently creating a duplicate.
-- **Booking conflicts caught.** Booking the same room for the exact same start/end as an existing booking is blocked.
-- **Basic CSRF protection** on every POST form (register, allocate, transfer, approve/reject, booking, reset).
-- **Reset demo data** button on the dashboard, so you can start over without restarting the PHP server or clearing cookies manually.
-- **Command palette (⌘K / Ctrl+K)** — jump to any page or any asset from anywhere in the app. Click the search bar in the topbar or press the shortcut, type to fuzzy-filter, arrow keys + Enter to navigate.
+*   [FakeEmail](https://github.com/tomwardill/FakeEmail), a Python-based fake mail server with a web interface.
+*   [smtp-sink](https://www.postfix.org/smtp-sink.1.html), part of the Postfix mail server, so you may have this installed already. This is used in the GitHub actions configuration to run PHPMailer's unit tests.
+*   [smtp4dev](https://github.com/rnwood/smtp4dev), a dummy SMTP server for Windows and Linux.
+*   [fakesendmail.sh](https://github.com/PHPMailer/PHPMailer/blob/master/test/fakesendmail.sh), part of PHPMailer's test setup, this is a shell script that emulates sendmail for testing 'mail' or 'sendmail' methods in PHPMailer.
+*   [HELO](https://usehelo.com), a very nice (commercial) mail server desktop app from BeyondCode, and [how to set it up for local testing](https://usehelo.com/blog/how-to-use-helo-with-phps-mail-function).
+*   [msglint](https://www.splitbrain.org/_static/msglint/), not a mail server, the IETF's MIME structure analyser checks the formatting of your messages.
+*   [MailHog](https://github.com/les-enovateurs/mailhog-examples), a Go-based email testing tool for developers with a web interface. You can use it with Docker and GitHub Actions to test your mails. The repository also contains a small part of PHPMailer's setup.
+*   [aboutmy.email](https://aboutmy.email), a service for evaluating your email config – SPF, DKIM, DMARC, and compliance with list-unsubscribe, TLS, and many other settings.
 
-## How to run it
+Most of these examples use the `example.com` and `example.net` domains. These domains are reserved by IANA for illustrative purposes, as documented in [RFC 2606](https://www.rfc-editor.org/rfc/rfc2606). Don't use made-up domains like 'mydomain.com' or 'somedomain.com' in examples as someone, somewhere, probably owns them!
 
-You need PHP installed (PHP 8+ recommended). No database, no `composer install`.
+## Security note
+Before running these examples in a web server, you'll need to rename them with '.php' extensions. They are supplied as '.phps' files which will usually be displayed with syntax highlighting by PHP instead of running them. This prevents potential security issues with running potential spam-gateway code if you happen to deploy these code examples on a live site - _please don't do that!_
 
-```bash
-cd assetflow
-php -S localhost:8000
-```
+Similarly, don't leave your passwords in these files as they will be visible to the world!
 
-Then open **http://localhost:8000** in your browser.
+## [mail.phps](mail.phps)
 
-## How data works
+This is a basic example which creates an email message from an external HTML file, creates a plain text body, sets various addresses, adds an attachment and sends the message. It uses PHP's built-in mail() function which is the simplest to use, but relies on the presence of a local mail server, something which is not usually available on Windows. If you find yourself in that situation, either install a local mail server, or use a remote one and send using SMTP instead.
 
-This is a self-contained demo: all data (assets, transfers, bookings, activity log) lives in `includes/data.php` and is stored in the PHP session, so it resets when the session ends. To wire it up to a real database, replace the functions in `includes/data.php` (e.g. `af_assets()`, `af_submit_transfer()`) with PDO/MySQL queries — the rest of the app already calls through those functions, so no other file needs to change.
+## [simple_contact_form.phps](simple_contact_form.phps)
 
-## Structure
+This is probably the most common reason for using PHPMailer - building a contact form. This example has a basic, unstyled form and also illustrates how to filter input data before using it, how to validate addresses, how to avoid being abused as a spam gateway, and how to address messages correctly so that you don't fail SPF checks.
 
-```
-assetflow/
-├── index.php          Dashboard
-├── assets.php          Asset registry
-├── transfer.php         Allocation & Transfer (double-allocation block)
-├── booking.php          Resource booking
-├── audit.php             Asset Audit (checklist + discrepancy report)
-├── reports.php           Reports & Analytics (charts + lists)
-├── export_report.php     CSV export used by the Reports page
-├── notifications.php     Activity logs & Notifications
-├── org.php               Organization Setup (departments, categories, employees)
-├── page.php             Placeholder pages
-├── style.css             All styling
-└── includes/
-    ├── data.php          Mock data layer (session-based)
-    ├── header.php         Shared sidebar + topbar
-    └── footer.php         Shared closing markup
-```
+## [exceptions.phps](exceptions.phps)
+
+Like the mail example, but shows how to use PHPMailer's optional exceptions for error handling.
+
+## [extending.phps](extending.phps)
+
+This shows how to create a subclass of PHPMailer to customise its behaviour and simplify coding in your app.
+
+## [smtp.phps](smtp.phps)
+
+A simple example sending using SMTP with authentication.
+
+## [smtp_no_auth.phps](smtp_no_auth.phps)
+
+A simple example sending using SMTP without authentication.
+
+## [send_file_upload.phps](send_file_upload.phps)
+
+Lots of people want to do this... This is a simple form which accepts a file upload and emails it.
+
+## [send_multiple_file_upload.phps](send_multiple_file_upload.phps)
+
+A slightly more complex form that allows uploading multiple files at once and sends all of them as attachments to an email.
+
+## [sendmail.phps](sendmail.phps)
+
+A simple example using sendmail. Sendmail is a program (usually found on Linux/BSD, OS X and other UNIX-alikes) that can be used to submit messages to a local mail server without a lengthy SMTP conversation. It's probably the fastest sending mechanism, but lacks some error reporting features. There are sendmail emulators for most popular mail servers including postfix, qmail, exim etc.
+
+## [gmail.phps](gmail.phps)
+
+Submitting email via Google's Gmail service is a popular use of PHPMailer. It's much the same as normal SMTP sending, just with some specific settings, namely using TLS encryption, authentication is enabled, and it connects to the SMTP submission port 587 on the smtp.gmail.com host. This example does all that.
+
+## [gmail_xoauth.phps](gmail_xoauth.phps)
+
+Gmail now likes you to use XOAUTH2 for SMTP authentication. This is extremely laborious to set up, but once it's done you can use it repeatedly and will no longer need Gmail's ineptly-named "Allow less secure apps" setting enabled. [Read the guide in the wiki](https://github.com/PHPMailer/PHPMailer/wiki/Using-Gmail-with-XOAUTH2) for how to set it up.
+
+## [pop_before_smtp.phps](pop_before_smtp.phps)
+
+Back in the stone age, before effective SMTP authentication mechanisms were available, it was common for ISPs to use POP-before-SMTP authentication. As it implies, you authenticate using the POP3 protocol (an older protocol now mostly replaced by the far superior IMAP), and then the SMTP server will allow send access from your IP address for a short while, usually 5-15 minutes. PHPMailer includes a basic POP3 protocol client with just enough functionality to carry out this sequence - it's just like a normal SMTP conversation (without authentication), but connects via POP3 first.
+
+## [mailing_list.phps](mailing_list.phps)
+
+This is a somewhat naïve, but reasonably efficient example of sending similar emails to a list of different addresses. It sets up a PHPMailer instance using SMTP, then connects to a MySQL database to retrieve a list of recipients. The code loops over this list, sending email to each person using their info and marks them as sent in the database. It makes use of SMTP keepalive which saves reconnecting and re-authenticating between each message.
+
+## [ssl_options.phps](ssl_options.phps)
+
+PHP 5.6 introduced SSL certificate verification by default, and this applies to mail servers exactly as it does to web servers. Unfortunately, SSL misconfiguration in mail servers is quite common, so this caused a common problem: those that were previously using servers with bad configs suddenly found they stopped working when they upgraded PHP. PHPMailer provides a mechanism to disable SSL certificate verification as a workaround and this example shows how to do it. Bear in mind that this is **not** a good approach - the right way is to fix your mail server config!
+
+## [smime_signed_mail.phps](smime_signed_mail.phps)
+
+An example of how to sign messages using [S/MIME](https://en.wikipedia.org/wiki/S/MIME), ensuring that your data can't be tampered with in transit, and proves to recipients that it was you that sent it.
+
+* * *
+
+## [smtp_check.phps](smtp_check.phps)
+
+This is an example showing how to use the SMTP class by itself (without PHPMailer) to check an SMTP connection.
+
+## [smtp_low_memory.phps](smtp_low_memory.phps)
+
+This demonstrates how to extend the SMTP class and make PHPMailer use it. In this case it's an effort to make the SMTP class use less memory when sending large attachments.
+
+* * *
